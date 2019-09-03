@@ -4,8 +4,6 @@ package hyperopt;
 import agents.evo.EvoAgent;
 import caveswing.core.CaveGameState;
 import caveswing.core.CaveSwingParams;
-import caveswing.test.EvoAgentVisTest;
-import caveswing.test.KeyPlayerTest;
 import ggi.agents.EvoAgentFactory;
 import hyperopt.ThriftFiles.gen_java.thrift_elites.ParamEvaluator;
 import hyperopt.ThriftFiles.gen_java.thrift_elites.Results;
@@ -16,16 +14,6 @@ import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
-import utilities.ElapsedTimer;
-import utilities.StatSummary;
-
-import java.awt.*;
-import java.util.HashMap;
-
-
-
-// TODO
-// get behaviour characterization from a run
 
 // Thrift
 // Thrift is open source software for generating code for inter process communication between various languages
@@ -51,11 +39,6 @@ public class TuneMapElites
         public void ping() throws org.apache.thrift.TException
         {
             System.out.println("PING");
-
-
-            //KeyPlayerTest.setParams(param);
-            //for (int i=0;i<10;i++)
-            //    PlayGame();
         }
 
         public Results evaluate_params(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException

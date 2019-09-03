@@ -68,7 +68,7 @@ params["gravity_X"] = -0.0
 params["gravity_Y"] = 1.2
 
 
-# ranges for paramters
+# ranges for parameters
 param_limits = dict()
 param_limits["pointPerX"] = ("int",10,10)
 param_limits["hooke"] = ("float",0.005,0.1)
@@ -273,4 +273,8 @@ def makeHeatMap(scores,x):
     #plt.colorbar()
     #plt.show()
 
-    plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
+    # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
+
+if __name__ == "__main__":
+    client = mapElite.connectToServer()
+    elites = mapElite.runSimulation(2000, 50, client)
