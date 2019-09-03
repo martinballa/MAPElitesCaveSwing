@@ -84,6 +84,8 @@ param_limits["successBonus"] = ("int",1000,1000)
 param_limits["gravity_X"] = ("float",-1,1)
 param_limits["gravity_Y"] = ("float",-1,2)
 
+
+
 def getRandomParams(param_limits):
     #new random params dictionary
     randomParams = dict()
@@ -158,13 +160,11 @@ def mutateParams(params,param_limits):
 
     return params
 
-# Create an empty, N-dimensional map of elites
-elites = init_elite_MAP(behaviour_tresholds) #list of tuples [[score, params]]
-numberOfIters = 10
-GRandomSolutions = 7
-
 def runSimulation(numberOfIters, GRandomSolutions,client):
-    gifIndex =0
+    # Create an empty, N-dimensional map of elites
+    elites = init_elite_MAP(behaviour_tresholds)  # list of tuples [[score, params]]
+
+    gifIndex = 0
     #loop for numberOfIters iterations
     for x in tqdm(range(numberOfIters)):
         if gifIndex %10 ==0:
@@ -276,5 +276,8 @@ def makeHeatMap(scores,x):
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
 if __name__ == "__main__":
+    numIters = 2000
+    randomSolutions = 50
+
     client = mapElite.connectToServer()
-    elites = mapElite.runSimulation(2000, 50, client)
+    elites = mapElite.runSimulation(numIters, randomSolutions, client)
