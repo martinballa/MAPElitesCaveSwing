@@ -81,6 +81,7 @@ public class TuneMapElites
     }
 
     public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
+        int numRuns = 10;
 
         // use fixed agent
         int nEvals = 20;
@@ -89,34 +90,44 @@ public class TuneMapElites
 
         // initialize stats
         double height = 0;
-        double averageSpeed;
-        double score ;
-        int ticks;
+        double averageSpeed = 0;
+        double score = 0;
+        int ticks = 0;
         int ropeActions = 0;
+        int width = 0;
 
         // get agent and game from the given parameters
         EvoAgent player = getEvoAgentFromFactory(nEvals, seqLength, useShiftBuffer);
         CaveSwingParams caveParams = setParams(params);
         CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
 
-        // run main game loop
-        while (!gameState.isTerminal()) {
-            // get the action from the player, update the game state, and visualize it
-            int action = player.getAction(gameState.copy(), 0);
-            int[] actions = new int[]{action};
-            if (actions[0] == 1)
-                ropeActions++;
-            gameState.next(actions);
-            height += gameState.avatar.s.y;
+        for (int i = 0; i < numRuns; i++){
+            // run main game loop
+            while (!gameState.isTerminal()) {
+                // get the action from the player, update the game state, and visualize it
+                int action = player.getAction(gameState.copy(), 0);
+                int[] actions = new int[]{action};
+                if (actions[0] == 1)
+                    ropeActions++;
+                gameState.next(actions);
+
+                // stats at every single game frame
+                height += gameState.avatar.s.y;
+            }
+
+            // stats at the end of every game
+            score += gameState.getScore();
+            ticks += gameState.nTicks;
+            width += caveParams.width;
         }
+
 
         // collect stats
         // TODO you can add new behaviour descriptors here
-        score = gameState.getScore();
-        ticks = gameState.nTicks;
-        height /= ticks;
-        averageSpeed = caveParams.width/ticks;
-        System.out.println((int) gameState.getScore());
+
+        double avgHeight = height/ticks;
+        averageSpeed = width/ticks;
+//        System.out.println((int) gameState.getScore());
 
         // add result into the correct format
         Results res = new Results();

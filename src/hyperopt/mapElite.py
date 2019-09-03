@@ -11,6 +11,7 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import numpy as np
 import matplotlib
 import mapElite
@@ -118,21 +119,20 @@ def connectToServer():
 
 def init_elite_MAP(behaviour_tresholds):
     dims = [len(bt[1])+1 for bt in behaviour_tresholds]
-    return np.empty(dims,dtype=object)
+    return np.empty(dims, dtype=object)
 
 def get_threshold(a, b):
     # create a threshold with linear increments
     # a and b is expected to have the format [name, min, max, num_bins]
     assert a.len == 4
     assert b.len == 4
-
     return [(a[0], np.linspace(a[1], a[2], a[3])),
             (b[0], np.linspace(b[1], b[2], b[3]))]
 
 
 
 
-def behavior_to_behaviour_idx(b,b_tresholds):
+def behavior_to_behaviour_idx(b, b_tresholds):
     # todo rewrite to use 'name' and 'min' and 'max' values with 'num_bins'
     b_idx = []
     for name,tresholds in b_tresholds:
@@ -228,35 +228,23 @@ def runSimulation(numberOfIters, GRandomSolutions, client):
         
     return elites
 
-
-def randomString(stringLength=10):
-    """Generate a random string of fixed length """
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) in range(stringLength))
-                   
-
-def makeHeatMap(scores,x):
-    scores = np.ones(elites.shape)
-    scores = np.negative(scores)
+def makeHeatMap(elites):
+    scores = np.full(elites.shape, np.nan)
+    # scores = np.ones(elites.shape)
+    # scores = np.negative(scores)
 
     for i in range(elites.shape[0]):
         for j in range(elites.shape[1]):
             if elites[i,j] != None:
                 scores[i,j] = elites[i,j][0]
 
-    scores[scores == -1] = np.nan
-
-    print(scores.shape)
-
-    fig=plt.figure()
-    from matplotlib.pyplot import figure
     figure(num=None, figsize=(8, 6), dpi=80)
     current_cmap = matplotlib.cm.get_cmap()
     current_cmap.set_bad(color='white')
-    print('making map')
-    #plt.axis('off')
+
     plt.grid()
     plt.imshow(scores, cmap=current_cmap, interpolation='nearest')
+    # todo use actual names for chosen behaviours
     plt.xlabel('Average Speed')
     plt.ylabel('Average Height')
 
@@ -283,8 +271,8 @@ def makeHeatMap(scores,x):
         arr.append(round(x1 +(xa/interval)*i)) 
 
     plt.yticks([0, 10, 20, 30, 40,50], arr)
-    #plt.colorbar()
-    #plt.show()
+    plt.colorbar()
+    plt.show()
 
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
