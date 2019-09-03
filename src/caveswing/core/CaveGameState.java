@@ -17,6 +17,7 @@ public class CaveGameState implements AbstractGameState {
     boolean gameOver;
     // boolean isAttached;
     public Anchor currentAnchor;
+    public int connectionCount =0;
 
     public CaveGameState setParams(CaveSwingParams params) {
         this.params = params;
@@ -80,6 +81,7 @@ public class CaveGameState implements AbstractGameState {
                 resultantForce.add(tension);
             }
         } else if (action == Constants.actionRelease) {
+            connectionCount++;
 
             currentAnchor = null;
         }

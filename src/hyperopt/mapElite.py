@@ -172,27 +172,27 @@ def mutateParams(params,param_limits):
 
     return params
 
-def runSimulation(numberOfIters, GRandomSolutions, client):
+def runSimulation(numIters, GRandomSolutions, client):
     # TODO change behaviour threshold
     # Create an empty, N-dimensional map of elites
     elites = init_elite_MAP(behaviour_tresholds)  # list of tuples [[score, params]]
 
-    # gifIndex = 0
     #loop for numberOfIters iterations
-    for x in tqdm(range(numberOfIters)):
-        # if gifIndex %10 ==0:
-        #     makeHeatMap(elites,x)
-        # gifIndex +=1
+    for x in tqdm(range(numIters)):
         
         #Initialize by generating G random solutions
         if (x < GRandomSolutions):
             #get a random set of #PARAMS
             randomParams = getRandomParams(param_limits)
             results = client.evaluate_params(randomParams) #get the score and the behavior
+
             result = results.game_score
             b = results.behaviour
+
+
             #get the index
             index = behavior_to_behaviour_idx(b, behaviour_tresholds)
+            print('behaviour = {} and index = {}'.format(b, index))
             
             #print(index)
             #evaluate the index
@@ -282,3 +282,5 @@ if __name__ == "__main__":
 
     client = mapElite.connectToServer()
     elites = mapElite.runSimulation(numIters, randomSolutions, client)
+
+    # client.run_params({'pointPerX': 10, 'hooke': 0.09114378920197345, 'width': 2500, 'nAnchors': 9, 'maxTicks': 500, 'meanAnchorHeight': 100.0, 'costPerTick': 50, 'lossFactor': 0.999468194680708, 'failurePenalty': 1000, 'pointPerY': -10, 'successBonus': 1000, 'gravity_X': -0.48373076543976246, 'gravity_Y': -0.11940910688056672})

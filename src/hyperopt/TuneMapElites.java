@@ -4,6 +4,8 @@ package hyperopt;
 import agents.evo.EvoAgent;
 import caveswing.core.CaveGameState;
 import caveswing.core.CaveSwingParams;
+import caveswing.util.ViewUtil;
+import caveswing.view.CaveView;
 import ggi.agents.EvoAgentFactory;
 import hyperopt.ThriftFiles.gen_java.thrift_elites.ParamEvaluator;
 import hyperopt.ThriftFiles.gen_java.thrift_elites.Results;
@@ -14,6 +16,11 @@ import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
+import utilities.ElapsedTimer;
+import utilities.JEasyFrame;
+import utilities.StatSummary;
+
+import java.util.ArrayList;
 
 // Thrift
 // Thrift is open source software for generating code for inter process communication between various languages
@@ -29,6 +36,12 @@ import org.apache.thrift.transport.TServerTransport;
 
 public class TuneMapElites
 {
+    static double height=0;
+    static double averageSpeed =0;
+    static double score =0;
+    static double ticks =0;
+    static double anchorNormalized = 0;
+    static int evalTimes = 20;
 
     public static class ParamEvaluatorHandler implements ParamEvaluator.Iface
     {
@@ -44,47 +57,108 @@ public class TuneMapElites
             run game and collect the data
             send it back to server */
 
-
+            System.out.println("Evaluate params");
             setParams(params);
             Results res = PlayGame(params);
+            System.out.println("evaluation is done");
 
             return res;
         }
-        public Results human_play(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
+
+        public Results run_params(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
         {
-            /*
-            receive params and update the game and ai params
-            run game and collect the data
-            send it back to server */
-            System.out.println("human gameplay");
-
-
-            setParams(params);
-            Results res = PlayGame(params);
+            Results res = testParams(params);
 
             return res;
         }
-        public Results visual_evaluation(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
-        {
-            /*
-            receive params and update the game and ai params
-            run game and collect the data
-            send it back to server */
-            System.out.println("RHEA visual gameplay");
-
-            setParams(params);
-            Results res = PlayGame(params);
-
-            return res;
-        }
-
     }
 
-    public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
-        int numRuns = 10;
+//    public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
+//        CaveSwingParams caveParams = setParams(params);
+//        EvoAgent player = getEvoAgentFromFactory(params);
+//
+//        // Reinitialize arrays every time
+//        ArrayList<Double> heightList = new ArrayList<>();
+//        ArrayList<Double> avgSpeedList = new ArrayList<>();
+//        ArrayList<Double> scoreList = new ArrayList<>();
+//        ArrayList<Double> ticksList = new ArrayList<>();
+//        ArrayList<Double> anchorList = new ArrayList<>();
+//        ArrayList<Double> finalPosList = new ArrayList<>();
+//        // reset data
+//        height =0;
+//        averageSpeed =0;
+//        score =0;
+//        ticks =0;
+//        int ropeActions = 0;
+//
+//        for (int i= 0; i<evalTimes; i++){
+//            CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
+//            int tmpHeight = 0; // used for accumulating height data
+//
+//            //StatSummary actionTimes = new StatSummary("Decision time stats");
+//            // gameState.setSoundEnabled(true);
+//
+//            while (!gameState.isTerminal()) {
+//                // get the action from the player, update the game state, and show a view
+//                ElapsedTimer t = new ElapsedTimer();
+//                int action = player.getAction(gameState.copy(), 0);
+//
+//                int[] actions = new int[]{action};
+//                gameState.next(actions);
+//
+//                // update every game tick
+//                tmpHeight += gameState.avatar.s.y;
+//
+//                if (actions[0] == 1)
+//                    ropeActions++;
+//            }
+//
+//            // update after every game
+//            scoreList.add((double)gameState.getScore());
+//            ticksList.add((double)gameState.nTicks);
+//            heightList.add((double)(tmpHeight/gameState.nTicks));
+//            avgSpeedList.add((double)(caveParams.width/gameState.nTicks));
+//            finalPosList.add( (double)gameState.avatar.s.x);
+//
+//            anchorList.add((((double)gameState.connectionCount/(double)caveParams.nAnchors) /(double)gameState.nTicks));
+//            System.out.println((int) gameState.getScore());
+//
+//            //anchorNormalized = gameState.connectionCount;
+//        }
+//
+//
+//        //int anc = caveParams.nAnchors;
+//        //anchorNormalized = takeListMean((anchorList));
+//
+//
+//
+//        anchorNormalized = takeListMean(anchorList);
+//        score = takeListMean(scoreList);
+//        ticks = takeListMean(ticksList);
+//        height = takeListMean(heightList);
+//        averageSpeed = takeListMean(avgSpeedList);
+//        ropeActions = ropeActions/evalTimes;
+//
+//        // add result into the correct format
+//        Results res = new Results();
+//        res.game_score=score;
+//        java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<>();
+//        behaviourMap.put("height", height);
+//        behaviourMap.put("averageSpeed", averageSpeed);
+//        behaviourMap.put("ticks", ticks);
+//        behaviourMap.put("ropeActions", (double)ropeActions);
+//        behaviourMap.put("anchorNormalized", anchorNormalized);
+//        res.behaviour = behaviourMap;
+//
+//        return res;
+//
+//
+//    }
 
-        // use fixed agent
-        int nEvals = 20;
+    public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
+        CaveGameState gameState;
+        // use fixed RHEA agent
+        int nEvals = 5;
         int seqLength = 100;
         boolean useShiftBuffer = true;
 
@@ -92,16 +166,25 @@ public class TuneMapElites
         double height = 0;
         double averageSpeed = 0;
         double score = 0;
-        int ticks = 0;
+        double ticks = 0;
         int ropeActions = 0;
-        int width = 0;
+
+        // Reinitialize arrays every time
+        ArrayList<Double> heightList = new ArrayList<>();
+        ArrayList<Double> avgSpeedList = new ArrayList<>();
+        ArrayList<Double> scoreList = new ArrayList<>();
+        ArrayList<Double> ticksList = new ArrayList<>();
+        ArrayList<Double> anchorList = new ArrayList<>();
+        ArrayList<Double> finalPosList = new ArrayList<>();
+
 
         // get agent and game from the given parameters
         EvoAgent player = getEvoAgentFromFactory(nEvals, seqLength, useShiftBuffer);
         CaveSwingParams caveParams = setParams(params);
-        CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
 
-        for (int i = 0; i < numRuns; i++){
+        // main loop for evaluating games
+        for (int i= 0; i < evalTimes; i++){
+            gameState = new CaveGameState().setParams(caveParams).setup();
             // run main game loop
             while (!gameState.isTerminal()) {
                 // get the action from the player, update the game state, and visualize it
@@ -113,34 +196,114 @@ public class TuneMapElites
 
                 // stats at every single game frame
                 height += gameState.avatar.s.y;
+                if (actions[0] == 1)
+                    ropeActions++;
             }
 
-            // stats at the end of every game
-            score += gameState.getScore();
-            ticks += gameState.nTicks;
-            width += caveParams.width;
+            // update after every game
+            scoreList.add((double)gameState.getScore());
+            ticksList.add((double)gameState.nTicks);
+            heightList.add((double)(height/gameState.nTicks));
+            avgSpeedList.add((double)(caveParams.width/gameState.nTicks));
+            finalPosList.add( (double)gameState.avatar.s.x);
+            height = 0;
+
+            anchorList.add((((double)gameState.connectionCount/(double)caveParams.nAnchors) /(double)gameState.nTicks));
+            System.out.println((int) gameState.getScore());
+            anchorNormalized = gameState.connectionCount;
         }
 
 
         // collect stats
         // TODO you can add new behaviour descriptors here
-
-        double avgHeight = height/ticks;
-        averageSpeed = width/ticks;
-//        System.out.println((int) gameState.getScore());
+        anchorNormalized = takeListMean(anchorList);
+        score = takeListMean(scoreList);
+        ticks = takeListMean(ticksList);
+        height = takeListMean(heightList);
+        averageSpeed = takeListMean(avgSpeedList);
 
         // add result into the correct format
         Results res = new Results();
         res.game_score=score;
         java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<String,Double>();
-        behaviourMap.put("height",height);
-        behaviourMap.put("averageSpeed",averageSpeed);
-        behaviourMap.put("ticks",(double)ticks);
-        behaviourMap.put("ropeActions",(double)ropeActions);
+        behaviourMap.put("height", height);
+        behaviourMap.put("averageSpeed", averageSpeed);
+        behaviourMap.put("ticks", (double)ticks);
+        behaviourMap.put("ropeActions", (double)ropeActions);
+        behaviourMap.put("anchorNormalized", anchorNormalized);
         res.behaviour = behaviourMap;
 
         return res;
     }
+
+    public static Results testParams(java.util.Map<java.lang.String,java.lang.Double> params){
+        CaveSwingParams caveParams = setParams(params);
+        EvoAgent player = getEvoAgentFromFactory(params);
+
+        boolean showEvolution = true;
+        int frameDelay = 50;
+
+        double height = 0;
+        double averageSpeed =0;
+        double score =0;
+        int ticks =0;
+
+        System.out.println("playing game");
+        CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
+        CaveView view = new CaveView().setGameState(gameState).setParams(caveParams);
+        view.scrollView = true;
+        view.scrollWidth = 800;
+
+        String title = "Evo Agent Visual GVGAISimpleTest";
+        JEasyFrame frame = new JEasyFrame(view, title);
+        if (showEvolution) frame.setLocation(0, 350);
+        try {
+            ViewUtil.waitUntilReady(view);
+
+        } catch (Exception e){
+            System.out.println("error");
+        }
+
+        StatSummary actionTimes = new StatSummary("Decision time stats");
+        // gameState.setSoundEnabled(true);
+        while (!gameState.isTerminal()) {
+            // get the action from the player, update the game state, and show a view
+
+
+            ElapsedTimer t = new ElapsedTimer();
+            int action = player.getAction(gameState.copy(), 0);
+            // recall the action array is needed for generality for n-player games
+            actionTimes.add(t.elapsed());
+
+            int[] actions = new int[]{action};
+            gameState.next(actions);
+            height += gameState.avatar.s.y;
+
+            CaveGameState viewState = ((CaveGameState) gameState.copy());
+
+            view.playouts = player.evoAlg.getLogger().solutions;
+            view.setGameState(viewState).repaint();
+            frame.setTitle(title + " : " + gameState.nTicks + " : " + gameState.isTerminal() + " : " + (int) gameState.getScore());
+            try {Thread.sleep(frameDelay);
+            }
+            catch (Exception e)
+            {
+                System.out.println(e);
+            }
+        }
+
+        frame.dispose();
+        score = gameState.getScore();
+        ticks = gameState.nTicks;
+        height /= ticks;
+        averageSpeed = caveParams.width/ticks;
+        System.out.println(actionTimes);
+        System.out.println((int) gameState.getScore());
+        System.out.println("number of ropes used  " + gameState.connectionCount);
+
+        return new Results();
+    }
+
     public static EvoAgent getEvoAgentFromFactory(int nEvals, int seqLength, boolean useShiftBuffer) {
 
         // create agent with the correct parameters
@@ -152,6 +315,17 @@ public class TuneMapElites
         evoAgent.setUseShiftBuffer(true);
 
         return evoAgent;
+    }
+
+    public static EvoAgent getEvoAgentFromFactory(java.util.Map<java.lang.String,java.lang.Double> params) {
+
+        EvoAgentFactory factory = new EvoAgentFactory();
+        factory.nEvals = params.get("nEvals").intValue();
+        factory.seqLength = params.get("seqLength").intValue();
+        factory.useShiftBuffer = (params.get("useShiftBuffer").intValue() == 1) ? true: false;
+        factory.totalRandomMutation = (params.get("totalRandomMutation").intValue() == 1) ? true: false;
+        factory.mutationRate = params.get("mutationRate").intValue();
+        return factory.getAgent();
     }
 
     public static CaveSwingParams setParams(java.util.Map<java.lang.String,java.lang.Double> params) {
@@ -189,6 +363,14 @@ public class TuneMapElites
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static double takeListMean(ArrayList<Double> lst){
+        double result = 0;
+        for (Double d: lst){
+            result+= d;
+        }
+        return result/lst.size();
     }
 
     public static void main(String[] args)
