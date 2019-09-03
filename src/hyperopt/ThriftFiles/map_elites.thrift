@@ -12,4 +12,6 @@ service ParamEvaluator
 {
     void ping(),
     Results evaluate_params(1:map<string,double> params)
+    Results human_play(1:map<string,double> params)
+    Results visual_evaluation(1:map<string,double> params)
 }

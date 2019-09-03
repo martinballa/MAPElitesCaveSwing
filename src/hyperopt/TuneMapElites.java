@@ -29,10 +29,6 @@ import org.apache.thrift.transport.TServerTransport;
 
 public class TuneMapElites
 {
-    static double height= 0;
-    static double averageSpeed = 0;
-    static double score = 0;
-    static int ticks = 0;
 
     public static class ParamEvaluatorHandler implements ParamEvaluator.Iface
     {
@@ -44,56 +40,95 @@ public class TuneMapElites
         public Results evaluate_params(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
         {
             /*
-            receive params and updatew the game and ai params
+            receive params and update the game and ai params
             run game and collect the data
             send it back to server */
 
-            setParams(params);
-            PlayGame(params);
 
-            Results res = new Results();
-            res.game_score=score;
-            java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<String,Double>();
-            behaviourMap.put("height",height);
-            behaviourMap.put("averageSpeed",averageSpeed);
-            behaviourMap.put("ticks",(double)ticks);
-            res.behaviour = behaviourMap;
+            setParams(params);
+            Results res = PlayGame(params);
 
             return res;
         }
+        public Results human_play(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
+        {
+            /*
+            receive params and update the game and ai params
+            run game and collect the data
+            send it back to server */
+            System.out.println("human gameplay");
+
+
+            setParams(params);
+            Results res = PlayGame(params);
+
+            return res;
+        }
+        public Results visual_evaluation(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
+        {
+            /*
+            receive params and update the game and ai params
+            run game and collect the data
+            send it back to server */
+            System.out.println("RHEA visual gameplay");
+
+            setParams(params);
+            Results res = PlayGame(params);
+
+            return res;
+        }
+
     }
 
-    public static void PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
+    public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
 
         // use fixed agent
         int nEvals = 20;
         int seqLength = 100;
         boolean useShiftBuffer = true;
-        // reset stats
-        height = 0;
-        averageSpeed = 0;
-        score = 0;
-        ticks = 0;
+
+        // initialize stats
+        double height = 0;
+        double averageSpeed;
+        double score ;
+        int ticks;
+        int ropeActions = 0;
 
         // get agent and game from the given parameters
         EvoAgent player = getEvoAgentFromFactory(nEvals, seqLength, useShiftBuffer);
         CaveSwingParams caveParams = setParams(params);
         CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
 
+        // run main game loop
         while (!gameState.isTerminal()) {
-            // get the action from the player, update the game state, and show a view
+            // get the action from the player, update the game state, and visualize it
             int action = player.getAction(gameState.copy(), 0);
             int[] actions = new int[]{action};
+            if (actions[0] == 1)
+                ropeActions++;
             gameState.next(actions);
             height += gameState.avatar.s.y;
         }
 
         // collect stats
+        // TODO you can add new behaviour descriptors here
         score = gameState.getScore();
         ticks = gameState.nTicks;
         height /= ticks;
         averageSpeed = caveParams.width/ticks;
         System.out.println((int) gameState.getScore());
+
+        // add result into the correct format
+        Results res = new Results();
+        res.game_score=score;
+        java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<String,Double>();
+        behaviourMap.put("height",height);
+        behaviourMap.put("averageSpeed",averageSpeed);
+        behaviourMap.put("ticks",(double)ticks);
+        behaviourMap.put("ropeActions",(double)ropeActions);
+        res.behaviour = behaviourMap;
+
+        return res;
     }
     public static EvoAgent getEvoAgentFromFactory(int nEvals, int seqLength, boolean useShiftBuffer) {
 
@@ -148,7 +183,6 @@ public class TuneMapElites
     public static void main(String[] args)
     {
         // code for starting up a client
-
         try {
             ParamEvaluatorHandler handler = new ParamEvaluatorHandler();
             ParamEvaluator.Processor processor = new ParamEvaluator.Processor(handler);

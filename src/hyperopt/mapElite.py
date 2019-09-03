@@ -120,8 +120,20 @@ def init_elite_MAP(behaviour_tresholds):
     dims = [len(bt[1])+1 for bt in behaviour_tresholds]
     return np.empty(dims,dtype=object)
 
+def get_threshold(a, b):
+    # create a threshold with linear increments
+    # a and b is expected to have the format [name, min, max, num_bins]
+    assert a.len == 4
+    assert b.len == 4
+
+    return [(a[0], np.linspace(a[1], a[2], a[3])),
+            (b[0], np.linspace(b[1], b[2], b[3]))]
+
+
+
 
 def behavior_to_behaviour_idx(b,b_tresholds):
+    # todo rewrite to use 'name' and 'min' and 'max' values with 'num_bins'
     b_idx = []
     for name,tresholds in b_tresholds:
         for i,treshold_val in enumerate(tresholds):
@@ -160,16 +172,17 @@ def mutateParams(params,param_limits):
 
     return params
 
-def runSimulation(numberOfIters, GRandomSolutions,client):
+def runSimulation(numberOfIters, GRandomSolutions, client):
+    # TODO change behaviour threshold
     # Create an empty, N-dimensional map of elites
     elites = init_elite_MAP(behaviour_tresholds)  # list of tuples [[score, params]]
 
-    gifIndex = 0
+    # gifIndex = 0
     #loop for numberOfIters iterations
     for x in tqdm(range(numberOfIters)):
-        if gifIndex %10 ==0:
-            makeHeatMap(elites,x)
-        gifIndex +=1
+        # if gifIndex %10 ==0:
+        #     makeHeatMap(elites,x)
+        # gifIndex +=1
         
         #Initialize by generating G random solutions
         if (x < GRandomSolutions):
@@ -209,7 +222,7 @@ def runSimulation(numberOfIters, GRandomSolutions,client):
             if(elites[tuple(behav)] == None):
                 elites[tuple(behav)] = (scoreMutated, paramsMutated)
             #if the old version is worse, override it
-            if (elites[tuple(behav)][0] < behav[0]):
+            elif (elites[tuple(behav)][0] < behav[0]):
                 elites[tuple(behav)] = (scoreMutated, paramsMutated)
 
         
