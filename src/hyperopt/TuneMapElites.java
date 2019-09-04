@@ -57,10 +57,8 @@ public class TuneMapElites
             run game and collect the data
             send it back to server */
 
-            System.out.println("Evaluate params");
             setParams(params);
             Results res = PlayGame(params);
-            System.out.println("evaluation is done");
 
             return res;
         }
@@ -73,87 +71,7 @@ public class TuneMapElites
         }
     }
 
-//    public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
-//        CaveSwingParams caveParams = setParams(params);
-//        EvoAgent player = getEvoAgentFromFactory(params);
-//
-//        // Reinitialize arrays every time
-//        ArrayList<Double> heightList = new ArrayList<>();
-//        ArrayList<Double> avgSpeedList = new ArrayList<>();
-//        ArrayList<Double> scoreList = new ArrayList<>();
-//        ArrayList<Double> ticksList = new ArrayList<>();
-//        ArrayList<Double> anchorList = new ArrayList<>();
-//        ArrayList<Double> finalPosList = new ArrayList<>();
-//        // reset data
-//        height =0;
-//        averageSpeed =0;
-//        score =0;
-//        ticks =0;
-//        int ropeActions = 0;
-//
-//        for (int i= 0; i<evalTimes; i++){
-//            CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
-//            int tmpHeight = 0; // used for accumulating height data
-//
-//            //StatSummary actionTimes = new StatSummary("Decision time stats");
-//            // gameState.setSoundEnabled(true);
-//
-//            while (!gameState.isTerminal()) {
-//                // get the action from the player, update the game state, and show a view
-//                ElapsedTimer t = new ElapsedTimer();
-//                int action = player.getAction(gameState.copy(), 0);
-//
-//                int[] actions = new int[]{action};
-//                gameState.next(actions);
-//
-//                // update every game tick
-//                tmpHeight += gameState.avatar.s.y;
-//
-//                if (actions[0] == 1)
-//                    ropeActions++;
-//            }
-//
-//            // update after every game
-//            scoreList.add((double)gameState.getScore());
-//            ticksList.add((double)gameState.nTicks);
-//            heightList.add((double)(tmpHeight/gameState.nTicks));
-//            avgSpeedList.add((double)(caveParams.width/gameState.nTicks));
-//            finalPosList.add( (double)gameState.avatar.s.x);
-//
-//            anchorList.add((((double)gameState.connectionCount/(double)caveParams.nAnchors) /(double)gameState.nTicks));
-//            System.out.println((int) gameState.getScore());
-//
-//            //anchorNormalized = gameState.connectionCount;
-//        }
-//
-//
-//        //int anc = caveParams.nAnchors;
-//        //anchorNormalized = takeListMean((anchorList));
-//
-//
-//
-//        anchorNormalized = takeListMean(anchorList);
-//        score = takeListMean(scoreList);
-//        ticks = takeListMean(ticksList);
-//        height = takeListMean(heightList);
-//        averageSpeed = takeListMean(avgSpeedList);
-//        ropeActions = ropeActions/evalTimes;
-//
-//        // add result into the correct format
-//        Results res = new Results();
-//        res.game_score=score;
-//        java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<>();
-//        behaviourMap.put("height", height);
-//        behaviourMap.put("averageSpeed", averageSpeed);
-//        behaviourMap.put("ticks", ticks);
-//        behaviourMap.put("ropeActions", (double)ropeActions);
-//        behaviourMap.put("anchorNormalized", anchorNormalized);
-//        res.behaviour = behaviourMap;
-//
-//        return res;
-//
-//
-//    }
+
 
     public static Results PlayGame(java.util.Map<java.lang.String,java.lang.Double> params){
         CaveGameState gameState;
@@ -237,8 +155,15 @@ public class TuneMapElites
     }
 
     public static Results testParams(java.util.Map<java.lang.String,java.lang.Double> params){
+        // use fixed RHEA agent
+        int nEvals = 5;
+        int seqLength = 100;
+        boolean useShiftBuffer = true;
+
         CaveSwingParams caveParams = setParams(params);
-        EvoAgent player = getEvoAgentFromFactory(params);
+        EvoAgent player = getEvoAgentFromFactory(nEvals, seqLength, useShiftBuffer);
+
+//        EvoAgent player = getEvoAgentFromFactory(params);
 
         boolean showEvolution = true;
         int frameDelay = 50;
@@ -247,6 +172,7 @@ public class TuneMapElites
         double averageSpeed =0;
         double score =0;
         int ticks =0;
+        int ropeActions = 0;
 
         System.out.println("playing game");
         CaveGameState gameState = new CaveGameState().setParams(caveParams).setup();
@@ -278,6 +204,8 @@ public class TuneMapElites
             int[] actions = new int[]{action};
             gameState.next(actions);
             height += gameState.avatar.s.y;
+            if (actions[0] == 1)
+                ropeActions++;
 
             CaveGameState viewState = ((CaveGameState) gameState.copy());
 
@@ -301,7 +229,18 @@ public class TuneMapElites
         System.out.println((int) gameState.getScore());
         System.out.println("number of ropes used  " + gameState.connectionCount);
 
-        return new Results();
+        // add result into the correct format
+        Results res = new Results();
+        res.game_score=score;
+        java.util.Map<java.lang.String,java.lang.Double> behaviourMap = new java.util.HashMap<String,Double>();
+        behaviourMap.put("height", height);
+        behaviourMap.put("averageSpeed", averageSpeed);
+        behaviourMap.put("ticks", (double)ticks);
+        behaviourMap.put("ropeActions", (double)ropeActions);
+        behaviourMap.put("anchorNormalized", anchorNormalized);
+        res.behaviour = behaviourMap;
+
+        return res;
     }
 
     public static EvoAgent getEvoAgentFromFactory(int nEvals, int seqLength, boolean useShiftBuffer) {
