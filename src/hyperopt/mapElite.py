@@ -192,7 +192,7 @@ def runSimulation(numIters, GRandomSolutions, client):
 
             #get the index
             index = behavior_to_behaviour_idx(b, behaviour_tresholds)
-            print('behaviour = {} and index = {}'.format(b, index))
+            #print('behaviour = {} and index = {}'.format(b, index))
             
             #print(index)
             #evaluate the index
@@ -273,6 +273,14 @@ def makeHeatMap(elites):
     plt.yticks([0, 10, 20, 30, 40,50], arr)
     plt.colorbar()
     plt.show()
+
+    text=plt.text(0,0, "", va="bottom", ha="left")
+
+    def onclick(event):
+        tx = 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (event.button, event.x, event.y, event.xdata, event.ydata)
+        text.set_text(tx)
+
+    cid = plt.canvas.mpl_connect('button_press_event', onclick)
 
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
