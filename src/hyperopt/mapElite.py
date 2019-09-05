@@ -121,16 +121,10 @@ def init_elite_MAP(behaviour_tresholds):
     dims = [len(bt[1])+1 for bt in behaviour_tresholds]
     return np.empty(dims, dtype=object)
 
-def get_threshold(a, b):
+def get_threshold(min, max, bins):
     # create a threshold with linear increments
     # a and b is expected to have the format [name, min, max, num_bins]
-    assert a.len == 4
-    assert b.len == 4
-    return [(a[0], np.linspace(a[1], a[2], a[3])),
-            (b[0], np.linspace(b[1], b[2], b[3]))]
-
-
-
+    return (np.linspace(min, max, bins-1))
 
 def behavior_to_behaviour_idx(b, b_tresholds):
     # todo rewrite to use 'name' and 'min' and 'max' values with 'num_bins'
@@ -236,6 +230,7 @@ def countFilledBins(elites, print=False):
             if (b!= None):
                 counter+=1
                 if print:
+                    print("x {} and y {}".format(a, b))
                     print(b)
     return counter
 
@@ -256,46 +251,50 @@ def makeHeatMap(elites):
     plt.grid()
     plt.imshow(scores, cmap=current_cmap, interpolation='nearest')
     # todo use actual names for chosen behaviours
-    plt.xlabel('Average Speed')
-    plt.ylabel('Average Height')
+    # take them from the behaviour_threshold variable
+    plt.xlabel('{}'.format(behaviour_tresholds[1][0]))
+    plt.ylabel('{}'.format(behaviour_tresholds[0][0]))
 
     text=plt.text(0,0, "", va="bottom", ha="left")
 
     def onclick(event):
-        tx = 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (event.button, event.x, event.y, event.xdata, event.ydata)
-        text.set_text(tx)
-        print('button={}, x={}, y={}, xdata={}, ydata={}'.format(event.button, event.x, event.y, event.xdata, event.ydata))
-        x, y = np.int(event.xdata), np.int(event.ydata)
+        #print('button={}, x={}, y={}, xdata={}, ydata={}'.format(event.button, event.x, event.y, event.xdata, event.ydata))
+        y, x = np.int(event.xdata), np.int(event.ydata)
+
+        print(elites.shape)
 
         # this is the block to evaluate params
         # TODO it should be mapElite.run_params
         #print(mapElite.runSimulation(elites[x, y]))
+        print("x = {} and y = {}".format(x, y))
+        print(elites[x, y])
 
     fig.canvas.mpl_connect('button_press_event', onclick)
 
-    
+    # new values
     interval = 5
-    x1 =5
-    x2= 312
+    x1 = behaviour_tresholds[1][1][0]
+    x2 = behaviour_tresholds[1][1][-1]
     xa = x2-x1
     
     #xa /= interval
     arr = []
     for i in range(0,interval+1):
-        arr.append(round(x1 +(xa/interval)*i)) 
+        arr.append(round(x1 +(xa/interval)*i, 3))
 
-    plt.xticks([0, 10, 20, 30, 40,50], arr)
+    plt.xticks([0, 10, 20, 30, 40, 50], arr)
 
-    x1 =208
-    x2= 36
+    # new values
+    x1 = behaviour_tresholds[0][1][0]
+    x2 = behaviour_tresholds[0][1][-1]
     xa = x2-x1
     
     #xa /= interval
     arr = []
     for i in range(0,interval+1):
-        arr.append(round(x1 +(xa/interval)*i)) 
+        arr.append(round(x1 +(xa/interval)*i, 3))
 
-    plt.yticks([0, 10, 20, 30, 40,50], arr)
+    plt.yticks([0, 10, 20, 30, 40, 50], arr)
     plt.colorbar()
     plt.show()
 
@@ -304,8 +303,15 @@ def makeHeatMap(elites):
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
 if __name__ == "__main__":
-    numIters = 200
-    randomSolutions = 50
+    numIters = 2000
+    randomSolutions = 200
+
+    # available BCs are
+    # first one is always the Y axis and second is the X axis
+    mapElite.behaviour_tresholds = [
+    #("anchorNormalized", (mapElite.get_threshold(min=0, max=0.2, bins=50))),
+    ("height", (mapElite.get_threshold(min=0, max=200, bins=50))),
+    ("averageSpeed", (mapElite.get_threshold(min=5., max=312., bins=50)))]
 
     client = mapElite.connectToServer()
     elites = mapElite.runSimulation(numIters, randomSolutions, client)
@@ -317,3 +323,6 @@ if __name__ == "__main__":
 
     print("number of bins filled {} out of {}".format(filledBins, (elites.shape[0]*elites.shape[1])))
     mapElite.makeHeatMap(elites)
+
+
+    # TODO after run should report min and max values for the behaviours
