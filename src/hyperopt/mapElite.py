@@ -228,6 +228,17 @@ def runSimulation(numIters, GRandomSolutions, client):
         
     return elites
 
+def countFilledBins(elites, print=False):
+    # counts the filled arrays in the map, also prints all the entries if requested
+    counter = 0
+    for a in elites:
+        for b in a:
+            if (b!= None):
+                counter+=1
+                if print:
+                    print(b)
+    return counter
+
 def makeHeatMap(elites):
     scores = np.full(elites.shape, np.nan)
     # scores = np.ones(elites.shape)
@@ -238,7 +249,7 @@ def makeHeatMap(elites):
             if elites[i,j] != None:
                 scores[i,j] = elites[i,j][0]
 
-    figure(num=None, figsize=(8, 6), dpi=80)
+    fig = figure(num=None, figsize=(8, 6), dpi=80)
     current_cmap = matplotlib.cm.get_cmap()
     current_cmap.set_bad(color='white')
 
@@ -247,6 +258,20 @@ def makeHeatMap(elites):
     # todo use actual names for chosen behaviours
     plt.xlabel('Average Speed')
     plt.ylabel('Average Height')
+
+    text=plt.text(0,0, "", va="bottom", ha="left")
+
+    def onclick(event):
+        tx = 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (event.button, event.x, event.y, event.xdata, event.ydata)
+        text.set_text(tx)
+        print('button={}, x={}, y={}, xdata={}, ydata={}'.format(event.button, event.x, event.y, event.xdata, event.ydata))
+        x, y = np.int(event.xdata), np.int(event.ydata)
+
+        # this is the block to evaluate params
+        # TODO it should be mapElite.run_params
+        #print(mapElite.runSimulation(elites[x, y]))
+
+    fig.canvas.mpl_connect('button_press_event', onclick)
 
     
     interval = 5
@@ -274,21 +299,21 @@ def makeHeatMap(elites):
     plt.colorbar()
     plt.show()
 
-    text=plt.text(0,0, "", va="bottom", ha="left")
 
-    def onclick(event):
-        tx = 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (event.button, event.x, event.y, event.xdata, event.ydata)
-        text.set_text(tx)
-
-    cid = plt.canvas.mpl_connect('button_press_event', onclick)
 
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
 if __name__ == "__main__":
-    numIters = 2000
+    numIters = 200
     randomSolutions = 50
 
     client = mapElite.connectToServer()
     elites = mapElite.runSimulation(numIters, randomSolutions, client)
 
+    # example params to run
     # client.run_params({'pointPerX': 10, 'hooke': 0.09114378920197345, 'width': 2500, 'nAnchors': 9, 'maxTicks': 500, 'meanAnchorHeight': 100.0, 'costPerTick': 50, 'lossFactor': 0.999468194680708, 'failurePenalty': 1000, 'pointPerY': -10, 'successBonus': 1000, 'gravity_X': -0.48373076543976246, 'gravity_Y': -0.11940910688056672})
+
+    filledBins = mapElite.countFilledBins(elites)
+
+    print("number of bins filled {} out of {}".format(filledBins, (elites.shape[0]*elites.shape[1])))
+    mapElite.makeHeatMap(elites)
