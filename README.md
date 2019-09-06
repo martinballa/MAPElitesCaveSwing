@@ -10,6 +10,10 @@ Python dependencies (It is recommended to create a virtual environment for the p
 - matplotlib
 - python-opencv
 
+You can install the dependencies by running:
+
+```pip install -r requirements.txt```
+
 optionally: Jupiter notebook, but can work without it
 
 Java
