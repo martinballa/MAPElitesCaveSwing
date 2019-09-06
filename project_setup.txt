@@ -1,0 +1,14 @@
+
+
+Steps to compile the project in InteliJ
+
+In project settings select sdk 1.8
+Choose language level 8
+Add all the jars in libs/ as dependencies
+Select an output folder for the project
+
+Tell intellij to create a jar with all the dependencies as described here:
+https://stackoverflow.com/questions/1082580/how-to-build-jars-from-intellij-properly
+
+Then click on build/artifacts
+This will create the JAR file. (12 Mb, with all dependencies)
