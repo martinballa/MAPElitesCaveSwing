@@ -25,3 +25,25 @@ To run the project the following steps should be followed:
 
 You can modify, which behaviour descriptors you want to use.
 It is also possibile to add new descriptors, which has to be done on the Java side in the ```TuneMapElites.java```, where the descriptors are added to the ```Results``` object.
+
+## Initialize MAP-elites
+
+Define the threshold for the bins, which should be the minimum and maximum values of the expected behaviour characterization values.
+```python
+mapElite.behaviour_tresholds = [
+    ("height", (mapElite.get_threshold(min=0, max=200, bins=50))),
+    ("averageSpeed", (mapElite.get_threshold(min=5., max=312., bins=50)))]
+```
+
+Connect to the Java client (should run ```TuneMapElites.java``` first) and run the ```numIters``` of iterations with G random initial solutions. After running G random parameters the remaining iterations mutates the found parameters to find new ones.
+```python
+client = mapElite.connectToServer()
+    elites = mapElite.runSimulation(numIters, randomSolutions, client)
+```
+
+Visualize the found solutions as a heatmap. 
+```python
+mapElite.makeHeatMap(elites)
+```
+After running for 2000 iterations, we should get a heatmap similar to this. For running longer more bins should be filled up by the algorithms.
+![Heatmap](imgs/heatmap.png "Heatmap Visualization")
