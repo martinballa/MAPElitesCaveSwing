@@ -258,8 +258,8 @@ def makeHeatMap(elites):
     text=plt.text(0,0, "", va="bottom", ha="left")
 
     def onclick(event):
-        #print('button={}, x={}, y={}, xdata={}, ydata={}'.format(event.button, event.x, event.y, event.xdata, event.ydata))
-        y, x = np.int(event.xdata), np.int(event.ydata)
+        print('button={}, x={}, y={}, xdata={}, ydata={}'.format(event.button, event.x, event.y, event.xdata, event.ydata))
+        y, x = np.int(event.xdata+0.5), np.int(event.ydata+0.5)
 
         print(elites.shape)
 
@@ -303,7 +303,7 @@ def makeHeatMap(elites):
     # plt.savefig('gifs/foo'+str(x)+'.png', bbox_inches='tight', pad_inches=0)
 
 if __name__ == "__main__":
-    numIters = 2000
+    numIters = 200
     randomSolutions = 200
 
     # available BCs are
