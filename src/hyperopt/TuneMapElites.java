@@ -7,8 +7,8 @@ import caveswing.core.CaveSwingParams;
 import caveswing.util.ViewUtil;
 import caveswing.view.CaveView;
 import ggi.agents.EvoAgentFactory;
-import hyperopt.ThriftFiles.gen_java.thrift_elites.ParamEvaluator;
-import hyperopt.ThriftFiles.gen_java.thrift_elites.Results;
+import hyperopt.ThriftFiles.gen_java.ParamEvaluator;
+import hyperopt.ThriftFiles.gen_java.Results;
 
 import math.Vector2d;
 import org.apache.thrift.server.TServer;
@@ -65,6 +65,7 @@ public class TuneMapElites
 
         public Results run_params(java.util.Map<java.lang.String,java.lang.Double> params) throws org.apache.thrift.TException
         {
+            setParams(params);
             Results res = testParams(params);
 
             return res;
