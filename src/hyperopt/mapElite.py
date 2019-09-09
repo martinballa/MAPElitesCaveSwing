@@ -233,7 +233,7 @@ def countFilledBins(elites, print=False):
                     print(b)
     return counter
 
-def makeHeatMap(elites, client):
+def makeHeatMap(elites,client):
     scores = np.full(elites.shape, np.nan)
     # scores = np.ones(elites.shape)
     # scores = np.negative(scores)
@@ -264,9 +264,14 @@ def makeHeatMap(elites, client):
 
         # this is the block to evaluate params
         # TODO it should be mapElite.run_params
-        print(client.run_params(elites[x, y][1]))
+
+
+        # mapElite.runSimulation(elites[x, y]))
         print("x = {} and y = {}".format(x, y))
         print(elites[x, y])
+        print("Running params...")
+        client.run_params(elites[x, y][1])
+        print("Run finished.")
 
     fig.canvas.mpl_connect('button_press_event', onclick)
 
