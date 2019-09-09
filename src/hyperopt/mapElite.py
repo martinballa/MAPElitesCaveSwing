@@ -18,6 +18,7 @@ import mapElite
 import cv2
 
 
+
 # TODO can we automatize this?
 # this is the discretization of the behaviour variables
 # if it is smaller than first index will be 0
@@ -234,7 +235,7 @@ def countFilledBins(elites, print=False):
                     print(b)
     return counter
 
-def makeHeatMap(elites):
+def makeHeatMap(elites,client):
     scores = np.full(elites.shape, np.nan)
     # scores = np.ones(elites.shape)
     # scores = np.negative(scores)
@@ -265,9 +266,14 @@ def makeHeatMap(elites):
 
         # this is the block to evaluate params
         # TODO it should be mapElite.run_params
-        #print(mapElite.runSimulation(elites[x, y]))
+
+        
+        # mapElite.runSimulation(elites[x, y]))
         print("x = {} and y = {}".format(x, y))
         print(elites[x, y])
+        print("Running params...")
+        client.run_params(elites[x, y][1])
+        print("Run finished.")
 
     fig.canvas.mpl_connect('button_press_event', onclick)
 
@@ -322,7 +328,7 @@ if __name__ == "__main__":
     filledBins = mapElite.countFilledBins(elites)
 
     print("number of bins filled {} out of {}".format(filledBins, (elites.shape[0]*elites.shape[1])))
-    mapElite.makeHeatMap(elites)
+    mapElite.makeHeatMap(elites,client)
 
 
     # TODO after run should report min and max values for the behaviours
