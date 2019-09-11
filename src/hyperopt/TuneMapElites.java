@@ -140,6 +140,7 @@ public class TuneMapElites
         ticks = takeListMean(ticksList);
         height = takeListMean(heightList);
         averageSpeed = takeListMean(avgSpeedList);
+        double avgRope = ropeActions/nEvals;
 
         // add result into the correct format
         Results res = new Results();
@@ -148,7 +149,7 @@ public class TuneMapElites
         behaviourMap.put("height", height);
         behaviourMap.put("averageSpeed", averageSpeed);
         behaviourMap.put("ticks", (double)ticks);
-        behaviourMap.put("ropeActions", (double)ropeActions);
+        behaviourMap.put("ropeActions", (double)avgRope);
         behaviourMap.put("anchorNormalized", anchorNormalized);
         res.behaviour = behaviourMap;
 
