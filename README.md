@@ -51,7 +51,7 @@ mapElite.makeHeatMap(elites)
 After running for 2000 iterations, we should get a heatmap similar to this. For running longer more bins should be filled up by the algorithms.
 ![Heatmap](imgs/heatmap.png "Heatmap Visualization")
 
-## Modifying Behavioral
+## Modifying Behavioral Characterization
 Got to ```TuneMapElites.java``` and you can define new ways to collect data in the PlayGame function, you just have to make sure to add it a new name and put it into the Results map.
 Existing Behavioural Characterizations are:
 - ```height```; average height the agent takes during evaluation
