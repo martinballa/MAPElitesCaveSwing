@@ -1,4 +1,4 @@
-# CaveSwingWorkshop
+# Illuminating Game Space Using MAP-Elites for Assisting Video Game Design
 
 
 The CaveSwing implementation is taken from this [repository](https://github.com/ljialin/SimpleAsteroids.)
@@ -10,6 +10,7 @@ Python dependencies (It is recommended to create a virtual environment for the p
 - thrift
 - numpy
 - matplotlib
+- tqdm
 
 You can install the dependencies by running ```pip install -r requirements.txt```
 
@@ -17,17 +18,17 @@ optionally: Jupiter notebook, but the interactive visualisation does not work in
 
 Java
 - version 8+ (with language level 8)
-- additional libraries are in the lib subfolder (gson and thrift are required to the workshop only)
+- additional libraries are in the lib subfolder (gson and thrift are required to run the example)
 
 ## Running Map-elites
 The main files for tuning the parameters in CaveSwing can be found in the src/hyperopt package. It contains both python and Java code.
 
-To run the project the following steps should be followed:
+To run the project the follow these steps:
 - 1, run main in ```TuneMapElites.java```, which starts up the server.
-- 2, run either the ```mapElite.py```
+- 2, run ```mapElite.py``` with python
 
 You can modify, which behaviour descriptors you want to use.
-It is also possibile to add new descriptors, which has to be done on the Java side in the ```TuneMapElites.java```, where the descriptors are added to the ```Results``` object.
+It is also possible to add new descriptors, which has to be done on the Java side in the ```TuneMapElites.java```, where the descriptors are added to the ```Results``` object.
 
 ## Initialize MAP-elites
 
@@ -67,3 +68,14 @@ mapElite.behaviour_tresholds = [
     ("<bc2>", (mapElite.get_threshold(min2, max2, bins2)))]
 ```
 where <bc1> and <bc2> are the names of the behavioral characterizations and ```min```, ```max``` are the ranges for the values it might take (or the area we are interested in) and ```bins``` define the number of grids used within these ranges.
+
+Please cite this paper if you use this in your work:
+```
+@article{balla2021illuminating,
+  title={Illuminating Game Space Using MAP-Elites for Assisting Video Game Design},
+  author={Balla, Martin and Barahona-R{\i}os, Adri{\'a}n and Katona, Adam and P{\'e}rez, Nuria Pena and Spick, Ryan},
+  year={2021},
+  booktitle={11th AISB Symposium on AI & Games}
+}
+```
+
